@@ -1,103 +1,110 @@
-# Source Article — The Tutorial We Critique
+# Source Article — The Work We Critique
 
-> **Status: PLACEHOLDER — to be confirmed in Phase 0/1 (open decision for Eyal).**
-> Once a specific tutorial is locked, fill the "Confirmed Source" block with verbatim claims
-> and reported metrics. Until then, the fallback target is the original CICIDS2017 paper.
+## Selected Source ✅
 
----
+**Title:** Evaluation of Machine Learning Techniques for Traffic Flow-Based Intrusion Detection
+**Authors:** María Rodríguez, Álvaro Alesanco, Lorena Mehavilla, José García
+**Venue:** *Sensors*, MDPI — peer-reviewed open-access journal
+**DOI:** 10.3390/s22239326
+**Published:** November 30, 2022
+**URL:** https://www.mdpi.com/1424-8220/22/23/9326
+**Full text (free):** https://www.mdpi.com/1424-8220/22/23/9326/htm
+**PDF (free):** https://www.mdpi.com/1424-8220/22/23/9326/pdf
 
-## Selection Criteria
+## Why This Is the Ideal Source
 
-A good source article for our critique:
+This is a **peer-reviewed journal article** in a legitimate indexed journal (Sensors, MDPI,
+ISSN 1424-8220), not just a blog post. This satisfies the HW requirement for "article"
+and actually makes our critique more academically serious — we are not just disproving
+a GitHub notebook, we are disproving a published paper.
 
-1. **Public & reproducible** — Towards Data Science, Kaggle, Medium, or a GitHub notebook.
-2. **Uses CICIDS2017** — specifically the `MachineLearningCVE` CSV flow features.
-3. **Claims F1 / accuracy ≥ 0.99 with Random Forest** (the claim we test).
-4. **Has a concrete code artifact** we can point to and reproduce.
-5. **High visibility** (claps / stars / forks / citations) — the more cited, the more impactful
-   the critique.
+The paper evaluates ML techniques on CICIDS2017 using Weka and concludes:
+> "tree-based techniques (PART, J48, and random forest) have turned out to be the most
+> efficient with **F1 values above 0.999** (average obtained in the complete dataset)"
 
-> The article must report **aggregate** metrics only (no per-class recall) and use a
-> **random** train/test split on **un-deduplicated** data — otherwise our three-flaw narrative
-> does not apply to *it* (we'd then critique the canonical paper instead).
+Our project reproduces this in Python/sklearn, confirms the 0.999 figure — then shows
+exactly why it is wrong using Engelen et al. (2021) as counter-evidence.
 
----
+## Key Claims to Disprove
 
-## Search Queries to Run (Phase 1)
+| Claim | Quote from paper | Our counter-test |
+|-------|-----------------|-----------------|
+| F1 > 0.999 | "F1 values above 0.999 (average obtained in the complete dataset)" | Show F1 drops after dedup + temporal split |
+| RF appropriate for IDS | "tree-based ML techniques may be appropriate in the flow-based intrusion detection problem" | Show Heartbleed/Infiltration recall ≈ 0 |
+| Complete dataset approach valid | "joint file obtained from the CICIDS2017 dataset includes 2,830,743 traffic flows" | Show mixing all days = temporal leakage |
 
-```
-site:towardsdatascience.com cicids2017 intrusion detection random forest 99
-site:github.com cicids2017 random forest notebook stars
-site:kaggle.com cicids2017 random forest 0.99 f1
-"CICIDS2017" "Random Forest" "99%" intrusion detection notebook
-```
+## Methodology They Used (the flaws)
 
-Evaluate the top hits against the selection criteria; prefer one with a runnable notebook and
-a clearly stated F1/accuracy number.
+- **Tool:** Weka (not Python) — we reproduce in Python/sklearn for verifiability
+- **Split:** Random split on the joint concatenated dataset of all 5 days — no temporal awareness
+- **Deduplication:** Not mentioned anywhere in the paper
+- **Metrics:** Macro F1 average across all classes — no per-class breakdown for rare attacks
+- **Classes:** Treats Heartbleed (11 samples) the same as DoS Hulk (230,000 samples) in macro average
 
----
+## The Three Flaws (mapped to Engelen 2021)
 
-## Confirmed Source (fill when locked)
+**Flaw 1 — Temporal leakage:**
+The paper creates a "joint file" of all 5 days, then splits randomly. Monday benign traffic
+mixes with Friday PortScan in both train and test. Engelen et al. (2021) showed this is
+methodologically incorrect for IDS evaluation.
 
-```
-Title:        <…>
-Author:       <…>
-Platform:     <Towards Data Science | Kaggle | GitHub | Medium>
-URL:          <…>
-Date:         <…>
-Code link:    <…>
-Popularity:   <claps / stars / forks / citations>
-```
+**Flaw 2 — Duplicate contamination:**
+CICIDS2017 has ~250k duplicate rows. The paper does not mention deduplication.
+With a random split on the joint file, duplicate rows appear in both train and test,
+inflating all metrics (Engelen et al., 2021).
 
-### Verbatim claims (quote exactly, with location)
+**Flaw 3 — Macro F1 hides rare-class failure:**
+Reporting "F1 > 0.999" as a macro average on a dataset with 11 Heartbleed samples
+and 2.27M BENIGN samples is statistically misleading. A model that never detects
+Heartbleed still achieves F1 ≈ 0.999 macro because BENIGN and DoS dominate.
 
-> "<paste the exact sentence(s) claiming high performance>"  — (URL, section/paragraph)
+## What We Do Instead (the reproduction + correction)
 
-### Reported metrics (as stated by the author)
+1. **Reproduce:** Load same CICIDS2017 CSVs, concatenate all days, random split → confirm F1 ≈ 0.999 with RF
+2. **Correct Flaw 1:** Apply temporal split (Mon–Thu train, Fri test) → show F1 drop
+3. **Correct Flaw 2:** Deduplicate before split → show additional F1 drop
+4. **Correct Flaw 3:** Show per-class breakdown → Heartbleed recall ≈ 0
 
-| Metric | Value (claimed) | Split used | Dedup? | Per-class? |
-|---|---|---|---|---|
-| Accuracy | <…> | random | <no?> | <no?> |
-| Macro F1 | <…> | random | <no?> | <no?> |
-| Precision | <…> | | | |
-| Recall | <…> | | | |
-
-### Methodology gaps to confirm (these enable our critique)
-- [ ] Random split (not temporal)?
-- [ ] No deduplication before split?
-- [ ] Aggregate metrics only (no per-class recall)?
-- [ ] No discussion of class imbalance?
-- [ ] No discussion of CICFlowMeter Inf/negative artifacts?
-
----
-
-## Fallback Source (if no tutorial is locked in time)
-
-> **Sharafaldin, I., Lashkari, A. H., & Ghorbani, A. A. (2018).** *Toward Generating a New
-> Intrusion Detection Dataset and Intrusion Traffic Characterization.* ICISSP 2018.
-
-Reported (Random Forest): **Precision = 0.9998, Recall = 0.9996, F1 = 0.9997** (aggregate).
-This is public, unambiguous, and exhibits exactly the methodology we critique. A representative
-tutorial can be cited as a secondary illustration of how the claim propagates.
-
----
-
-## Counter-Evidence (our weapon)
-
-> **Engelen, G., Rimmer, V., & Joosen, W. (2021).** *Troubleshooting an Intrusion Detection
-> Dataset: the CICIDS2017 Case Study.* IEEE Security and Privacy Workshops (SPW), pp. 7–12.
-> https://intrusion-detection.distrinet-research.be/WTMC2021/
+## Citation for Our Report
 
 ```bibtex
-@inproceedings{engelen2021troubleshooting,
-  title={Troubleshooting an Intrusion Detection Dataset: the CICIDS2017 Case Study},
-  author={Engelen, Gints and Rimmer, Vera and Joosen, Wouter},
-  booktitle={2021 IEEE Security and Privacy Workshops (SPW)},
-  pages={7--12},
-  year={2021},
-  organization={IEEE}
+@article{rodriguez2022evaluation,
+  title     = {Evaluation of Machine Learning Techniques for Traffic
+               Flow-Based Intrusion Detection},
+  author    = {Rodríguez, María and Alesanco, Álvaro and
+               Mehavilla, Lorena and García, José},
+  journal   = {Sensors},
+  volume    = {22},
+  number    = {23},
+  pages     = {9326},
+  year      = {2022},
+  publisher = {MDPI},
+  doi       = {10.3390/s22239326},
+  url       = {https://www.mdpi.com/1424-8220/22/23/9326}
 }
 ```
 
-> **Lanvin, M. et al. (2022).** *Errors in the CICIDS2017 Dataset and the Significant
-> Differences in Detection Performances It Makes.* CRiSIS 2022.
+## Counter-Evidence (our weapon)
+
+```bibtex
+@inproceedings{engelen2021troubleshooting,
+  title     = {Troubleshooting an Intrusion Detection Dataset:
+               the CICIDS2017 Case Study},
+  author    = {Engelen, Gints and Rimmer, Vera and Joosen, Wouter},
+  booktitle = {2021 IEEE Security and Privacy Workshops (SPW)},
+  pages     = {7--12},
+  year      = {2021},
+  doi       = {10.1109/SPW53761.2021.00009}
+}
+```
+
+## Note on Code Reproduction
+
+The original paper uses **Weka** (Java GUI tool) — no Python code available.
+This means we build our own Python/sklearn reproduction from their methodology description.
+This is actually fine and standard — the HW says "reproduce the proposed solution",
+which we do by implementing their pipeline (same dataset, same RF, same random split)
+and confirming their reported metrics before critiquing them.
+
+Our implementation advantage: Python notebooks are more transparent, reproducible,
+and inspectable than Weka experiments — another point in our favor during the critique.

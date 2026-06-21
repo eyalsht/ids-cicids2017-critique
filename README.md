@@ -1,6 +1,6 @@
 # IDS CICIDS2017 Critique
 
-**Reproducing — and debunking — a "99% F1" Random Forest intrusion-detection tutorial.**
+**Reproducing — and debunking — a peer-reviewed paper's "F1 > 0.999" Random Forest result on CICIDS2017.**
 
 Final project for **Data Science Methods in Cyber Security** (Dr. Uri Itai, University of
 Haifa). Student: **Eyal Steinmetz**. Submission deadline: **Friday, 10 July 2026, 23:59**.
@@ -9,9 +9,10 @@ Haifa). Student: **Eyal Steinmetz**. Submission deadline: **Friday, 10 July 2026
 
 ## TL;DR
 
-A popular class of tutorials trains a Random Forest on the **CICIDS2017** dataset and reports
-**F1 ≥ 0.99**. We reproduce that number — then show it is an artifact of three documented
-flaws, using the peer-reviewed IEEE paper *Engelen et al. (2021)* as counter-evidence:
+A peer-reviewed paper (*Rodríguez et al., 2022, Sensors* MDPI) trains a Random Forest on the
+**CICIDS2017** dataset and reports **F1 > 0.999**. We reproduce that number in Python/sklearn —
+then show it is an artifact of three documented flaws, using the peer-reviewed IEEE paper
+*Engelen et al. (2021)* as counter-evidence:
 
 1. **Duplicate contamination** — ~250k duplicate flows leak across a random train/test split.
 2. **Temporal-split violation** — random splitting mixes Monday→Friday traffic; a real IDS only
@@ -100,6 +101,19 @@ top-to-bottom with no errors or warnings.
 
 ---
 
+## Source Article Under Review
+
+Rodríguez, M., Alesanco, Á., Mehavilla, L., & García, J. (2022).
+**Evaluation of Machine Learning Techniques for Traffic Flow-Based Intrusion Detection.**
+*Sensors*, 22(23), 9326. MDPI.
+DOI: [10.3390/s22239326](https://doi.org/10.3390/s22239326)
+
+The paper claims Random Forest achieves **F1 > 0.999** on CICIDS2017 using Weka.
+This project reproduces their methodology in Python/sklearn, confirms the result,
+then demonstrates it collapses under corrected evaluation methodology.
+
+---
+
 ## Key References
 
 - **Engelen, G., Rimmer, V., & Joosen, W. (2021).** *Troubleshooting an Intrusion Detection
@@ -108,8 +122,10 @@ top-to-bottom with no errors or warnings.
 - **Lanvin, M. et al. (2022).** *Errors in the CICIDS2017 Dataset…* CRiSIS 2022.
 - **Sharafaldin, I. et al. (2018).** *Toward Generating a New Intrusion Detection Dataset…*
   ICISSP 2018.  ← original CICIDS2017 paper (RF F1 = 0.9997).
-- **Source tutorial under critique:** see [`references/source_article.md`](references/source_article.md)
-  *(to be confirmed)*.
+- **Rodríguez, M. et al. (2022).** *Evaluation of Machine Learning Techniques for Traffic
+  Flow-Based Intrusion Detection.* Sensors, 22(23), 9326. MDPI.
+  [10.3390/s22239326](https://doi.org/10.3390/s22239326)  ← the source article we critique.
+  Details in [`references/source_article.md`](references/source_article.md).
 
 ---
 
