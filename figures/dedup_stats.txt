@@ -1,0 +1,3 @@
+rows_total=2827876
+duplicate_rows=307078
+duplicate_pct=10.8590
