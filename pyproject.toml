@@ -1,0 +1,43 @@
+[project]
+name = "ids-cicids2017-critique"
+version = "0.1.0"
+description = "Reproduce and critically evaluate a 99%-F1 Random Forest IDS tutorial on CICIDS2017."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy",
+    "pandas",
+    "scikit-learn",
+    "matplotlib",
+    "seaborn",
+    "xgboost",
+    "imbalanced-learn",
+    "jupyter",
+    "ipykernel",
+]
+
+[dependency-groups]
+dev = [
+    "ruff",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+# Sensible defaults for a notebook-centric data-science project.
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "I",   # isort (import ordering)
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "W",   # pycodestyle warnings
+]
+ignore = [
+    "E501",  # line length handled by formatter; long markdown/strings in cells are fine
+]
+
+[tool.ruff.format]
+quote-style = "double"

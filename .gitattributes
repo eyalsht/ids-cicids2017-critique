@@ -1,0 +1,9 @@
+# Normalize line endings: store text as LF in the repo, check out native on Windows.
+* text=auto eol=lf
+
+# Treat notebooks and binaries appropriately
+*.ipynb text eol=lf
+*.pdf binary
+*.png binary
+*.csv binary
+*.parquet binary

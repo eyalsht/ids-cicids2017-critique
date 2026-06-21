@@ -1,0 +1,53 @@
+# ───────────────────────── Data (large, never committed) ─────────────────────────
+# Ignore the *contents* of data/ but keep the directory (via .gitkeep) tracked.
+data/*
+!data/.gitkeep
+*.csv
+*.parquet
+*.feather
+*.zip
+*.gz
+*.7z
+
+# ───────────────────────── Stray root-level PDFs / course materials ───────────────
+# Keep PDFs in report/ and references/ tracked, but ignore loose PDFs dropped at root
+# (e.g. unrelated course downloads). Negate the ones we DO want under references/.
+/*.pdf
+
+# ───────────────────────── Python ────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# ───────────────────────── Virtual environments / uv ─────────────────────────────
+.venv/
+venv/
+env/
+# uv.lock IS committed (reproducibility) — do not ignore it.
+
+# ───────────────────────── Jupyter ───────────────────────────────────────────────
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/
+
+# ───────────────────────── Tooling caches ────────────────────────────────────────
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+.ipython/
+
+# ───────────────────────── Secrets / environment ─────────────────────────────────
+.env
+.env.local
+!.env-example
+
+# ───────────────────────── OS / editor cruft ─────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*~
+.vscode/
+.idea/
