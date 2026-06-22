@@ -54,3 +54,16 @@ desktop.ini
 
 # notebook execution log (transient)
 run_full.log
+nbconvert_phase6.log
+
+# ───────────────────────── LaTeX build artifacts (keep .tex and .pdf) ─────────────
+*.aux
+*.toc
+*.out
+*.lof
+*.lot
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+report/*.log
+report/pass*.log
