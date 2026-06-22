@@ -51,3 +51,6 @@ desktop.ini
 *~
 .vscode/
 .idea/
+
+# notebook execution log (transient)
+run_full.log
