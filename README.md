@@ -5,6 +5,7 @@
 ![XGBoost](https://img.shields.io/badge/XGBoost-3.3-brightgreen)
 ![uv](https://img.shields.io/badge/env-uv-purple)
 ![ruff](https://img.shields.io/badge/lint-ruff%20clean-success)
+![tests](https://img.shields.io/badge/tests-16%20passing-success)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 [![Report](https://img.shields.io/badge/📄_full_report-PDF-red)](report/report.pdf)
 
@@ -84,18 +85,27 @@ The three flaws (each tested with our own experiment, citing Engelen et al. 2021
 ```
 .
 ├── README.md                         this file
+├── REQUIREMENTS_CHECKLIST.md         every assignment requirement → where it's satisfied
+├── KNOWN_LIMITATIONS.md              honest disclosure of scope/limitations
 ├── notebooks/
 │   ├── ids_cicids2017_critique.ipynb analysis (loading → EDA → FE → models → evaluation)
 │   └── metrics_export.json           every reported number (report reads from here)
 ├── report/
 │   ├── report.tex                    LaTeX source
-│   └── report.pdf                    final report (13 pages)
+│   └── report.pdf                    final report (14 pages)
+├── src/ids_critique/                 tested, reusable core (data, features, evaluate, critique)
+├── tests/                            pytest unit tests (dataset-independent)
 ├── figures/                          16 generated plots (PNG)
 ├── references/                       source_article.md, dataset_inventory.md, papers
-├── pyproject.toml / uv.lock          dependencies (uv) + ruff config
+├── pyproject.toml / uv.lock          dependencies (uv) + ruff + pytest config
 ├── LICENSE                           MIT
 └── data/                             ⛔ git-ignored — place CICIDS2017 CSVs here
 ```
+
+The notebook is the primary analysis artifact; [`src/ids_critique/`](src/ids_critique) factors
+its stateless core (weekday parsing, `log1p`, correlation pruning, the metric suite, the flaw
+deltas) into a clean, unit-tested library. See
+[`REQUIREMENTS_CHECKLIST.md`](REQUIREMENTS_CHECKLIST.md) for full rubric/requirement traceability.
 
 ---
 
@@ -118,8 +128,9 @@ uv run jupyter lab notebooks/ids_cicids2017_critique.ipynb
 cd notebooks && uv run jupyter nbconvert --to notebook --execute --inplace \
     --ExecutePreprocessor.timeout=-1 ids_cicids2017_critique.ipynb
 
-# 4. lint (expect: All checks passed!)
+# 4. lint + unit tests (expect: All checks passed! / 16 passed)
 uv run ruff check .
+uv run pytest -q
 ```
 
 > **Note:** the full run trains on 2.83M rows and takes ~25–30 min on a typical laptop CPU.
