@@ -308,6 +308,11 @@ inflated headline. For \emph{our work}: no --- every step is an explicit, commen
 public code, so the exact pipeline must be inferred. Our Python re-implementation is fully
 reproducible (fixed seeds, no leakage, conventional commits, \texttt{ruff}-clean), which is
 itself a contribution: it makes the claim falsifiable.
+\item \textbf{Engineering.} The reusable core is factored into a tested package
+\texttt{src/ids\_critique/} (\texttt{data} / \texttt{features} / \texttt{evaluate} /
+\texttt{critique}) with \textbf{16 passing \texttt{pytest} unit tests}; the environment is
+pinned via \texttt{uv.lock} (Python 3.12, scikit-learn 1.9, XGBoost 3.3, imbalanced-learn 0.14).
+Full version and command details are in Appendix~A.
 \end{itemize}
 
 % =====================================================================
@@ -331,22 +336,39 @@ so it does not depend on having seen an attack class --- achieves the best hones
 novel attacks as anomalies rather than memorised classes.
 
 \begin{table}[H]
-\centering
-\small
-\begin{tabular}{l c c c}
+\centering\footnotesize
+\setlength{\tabcolsep}{3.4pt}
+\begin{tabular}{l c c c c c c c}
 \toprule
-\textbf{Model (protocol)} & \textbf{macro-F1} & \textbf{MCC} & \textbf{ROC-AUC}\\
+\textbf{Model (protocol)} & \textbf{macro-F1} & \textbf{prec.} & \textbf{recall} & \textbf{F1$_+$} & \textbf{F$_2$} & \textbf{MCC} & \textbf{AUC}\\
 \midrule
-Random Forest --- A0 (raw + random, source) & 0.9987 & --- & ---\\
-Random Forest --- A1 (deduped + random) & 0.9984 & --- & ---\\
+RF --- A0 (raw + random, \emph{source}) & \textbf{0.9987} & 0.997 & 0.999 & 0.998 & 0.999 & 0.997 & 1.000\\
+RF --- A1 (deduped + random) & 0.9984 & 0.997 & 0.998 & 0.997 & 0.998 & 0.997 & 1.000\\
 \midrule
-Random Forest --- B0 (deduped + temporal) & 0.4883 & 0.2541 & 0.7735\\
-XGBoost --- B1 (deduped + temporal) & 0.4972 & 0.2670 & 0.7425\\
-Isolation Forest --- B2 (unsupervised) & 0.5473 & --- & ---\\
+RF --- B0 (deduped + temporal) & \textbf{0.4883} & 0.997 & 0.098 & 0.178 & 0.119 & 0.254 & 0.774\\
+XGBoost --- B1 (deduped + temporal) & 0.4972 & 0.997 & 0.108 & 0.194 & 0.131 & 0.267 & 0.742\\
+Isolation Forest --- B2 (unsupervised) & 0.5473 & 0.443 & 0.328 & 0.377 & 0.346 & 0.106 & 0.740\\
 \bottomrule
 \end{tabular}
-\caption{Headline metrics across strategies. The two near-perfect rows use the flawed
-protocol; the honest-protocol rows are far lower.}
+\caption{Full metric suite. \emph{macro-F1} averages both classes (the source's headline); the
+remaining columns are positive-class (attack) metrics. The honest-protocol rows (B$\ast$) expose
+the recall collapse that accuracy and the macro headline hide --- note B0/B1's high precision
+(0.997) but $\approx$0.10 recall: they almost never false-alarm, yet miss $\approx$90\% of attacks.}
+\end{table}
+
+\begin{table}[H]
+\centering\small
+\begin{tabular}{l r c l}
+\toprule
+\textbf{Friday attack type} & \textbf{flows} & \textbf{recall (B0)} & \textbf{seen in training?}\\
+\midrule
+DDoS & 128{,}014 & 0.168 & no (partial transfer from DoS family)\\
+PortScan & 90{,}694 & 0.001 & no\\
+Botnet & 1{,}948 & 0.000 & no\\
+\bottomrule
+\end{tabular}
+\caption{Per-attack-type recall on the Friday temporal test (B0). 100\% of the day's attack
+flows belong to classes unseen in Mon--Thu training, which is why recall collapses.}
 \end{table}
 
 \begin{figure}[H]
@@ -426,6 +448,23 @@ point sits high on the recall axis --- which on this honest split means acceptin
 precision, or (better) using anomaly detection and frequent retraining rather than a
 supervised classifier alone.
 
+\begin{table}[H]
+\centering\small
+\begin{tabular}{l r}
+\toprule
+\textbf{Friday (one day of traffic), honest RF-B0} & \textbf{count}\\
+\midrule
+Flows processed & 703{,}245\\
+Real attacks present & 220{,}656\\
+Alerts raised & 21{,}636\\
+\quad of which false alarms & 65 \;(0.3\% of the alert queue)\\
+Real attacks missed (false negatives) & 199{,}085 \;(90.2\% of attacks)\\
+\bottomrule
+\end{tabular}
+\caption{SOC cost on a single day. The honest detector barely false-alarms (high precision) yet
+misses 90\% of the day's attacks --- the operational opposite of the ``0.999'' impression.}
+\end{table}
+
 % =====================================================================
 \section{Conclusions}
 % =====================================================================
@@ -499,6 +538,60 @@ implementation but to assess the validity of the original work; our verdict is t
 author's conclusions, while reproducible, are \emph{not justified} as evidence of a deployable
 detector. A successful outcome here is the rigorous, honest analysis itself --- whether or not
 the original claim is confirmed.
+
+% =====================================================================
+\appendix
+
+\section{Reproducibility \& Environment}
+The full study runs from a pinned environment with one command; all randomness is fixed via
+\texttt{RANDOM\_STATE = 42}.
+
+\begin{table}[H]
+\centering\small
+\begin{tabular}{l l}
+\toprule
+\textbf{Item} & \textbf{Value}\\
+\midrule
+Python & 3.12\\
+Environment manager & \texttt{uv} (pinned in \texttt{uv.lock})\\
+Core libraries & scikit-learn 1.9, XGBoost 3.3, imbalanced-learn 0.14, pandas, numpy\\
+Notebook execution & \texttt{jupyter nbconvert --execute} --- 0 errors, 0 warnings, 16 figures\\
+Linting & \texttt{ruff check .} --- clean\\
+Unit tests & \texttt{pytest} --- 16 passing (\texttt{tests/}, dataset-independent)\\
+Report build & MiKTeX / \texttt{pdflatex} (this document)\\
+Repository & \texttt{github.com/eyalsht/ids-cicids2017-critique} (public)\\
+\bottomrule
+\end{tabular}
+\caption{Environment and reproducibility summary.}
+\end{table}
+
+\noindent Reusable logic is factored into a tested package and mirrors the notebook's helpers:
+\begin{itemize}[leftmargin=1.4em,itemsep=1pt]
+\item \texttt{src/ids\_critique/data.py} --- weekday parsing, whitespace/Inf cleaning, duplicate counting.
+\item \texttt{src/ids\_critique/features.py} --- skew detection, \texttt{log1p}, correlation pruning.
+\item \texttt{src/ids\_critique/evaluate.py} --- the IDS metric suite.
+\item \texttt{src/ids\_critique/critique.py} --- the flaw deltas (inflation, temporal drop, novel-class share).
+\end{itemize}
+
+\section{Rubric Traceability}
+\begin{table}[H]
+\centering\small
+\begin{tabular}{l c l}
+\toprule
+\textbf{Rubric component} & \textbf{Pts} & \textbf{Primary evidence}\\
+\midrule
+Problem Understanding \& Source Selection & 10 & \S1; README; \texttt{references/source\_article.md}\\
+Summary Quality & 15 & \S1\\
+\textbf{Critical Evaluation of Claims} & \textbf{20} & \S2 (three flaws, deltas, verdict table)\\
+Feature Engineering Analysis & 10 & \S4; notebook \S3; \texttt{features.py}\\
+Exploratory Data Analysis & 15 & \S3; notebook \S2; Figures 3--4\\
+Model Training \& Comparison & 15 & \S6; notebook \S4; Figures 7--8\\
+Evaluation \& Error Analysis & 10 & \S6--\S7; notebook \S5--\S6\\
+Code Quality \& Software Engineering & 5 & \texttt{src/}, \texttt{tests/}, \texttt{uv}, ruff-clean, fixed seeds\\
+\bottomrule
+\end{tabular}
+\caption{Mapping of each grading-rubric component to its primary evidence in this submission.}
+\end{table}
 
 % =====================================================================
 \begin{thebibliography}{9}
