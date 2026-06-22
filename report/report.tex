@@ -177,6 +177,13 @@ Infiltration $0.714$ (support $7$), SQL Injection $0.250$ (support $4$). These n
 \emph{un-evaluable}: any apparent ``hit'' is a memorised near-duplicate, and a single
 aggregate number conceals that rare-but-dangerous attacks cannot be assessed at all.
 
+\paragraph{Two further deployment checks (\S6).} At a realistic $1\%$ attack prevalence
+\emph{no} model is usable --- RF-B0 misses $\approx$90\% of attacks while the Isolation Forest's
+precision falls to $0.014$ --- and a day-provenance classifier recovers the capture day from flow
+features alone at $52.3\%$ (chance $20\%$), with Cram\'er's V(day, attack type) $=1.00$. Together
+these confirm the random split rewards memorising capture-day artefacts rather than detecting
+attacks.
+
 \subsection{Are the conclusions justified? Verdict table}
 \begin{table}[H]
 \centering
@@ -310,9 +317,9 @@ reproducible (fixed seeds, no leakage, conventional commits, \texttt{ruff}-clean
 itself a contribution: it makes the claim falsifiable.
 \item \textbf{Engineering.} The reusable core is factored into a tested package
 \texttt{src/ids\_critique/} (\texttt{data} / \texttt{features} / \texttt{evaluate} /
-\texttt{critique}) with \textbf{16 passing \texttt{pytest} unit tests}; the environment is
-pinned via \texttt{uv.lock} (Python 3.12, scikit-learn 1.9, XGBoost 3.3, imbalanced-learn 0.14).
-Full version and command details are in Appendix~A.
+\texttt{critique}) that the notebook \emph{imports directly} (Section~0), with \textbf{16 passing
+\texttt{pytest} unit tests}; the environment is pinned via \texttt{uv.lock} (Python 3.12,
+scikit-learn 1.9, XGBoost 3.3, imbalanced-learn 0.14). Full details are in Appendix~A.
 \end{itemize}
 
 % =====================================================================
@@ -391,11 +398,12 @@ to demonstrate this trap.
 governs SOC \emph{alert fatigue}. Low precision floods analysts with false alarms.
 \item \textbf{Recall} $=\frac{TP}{TP+FN}$. The fraction of attacks caught --- the most
 critical IDS metric, since each FN is an undetected intrusion.
-\item \textbf{F1} $=\frac{2\,PR}{P+R}$ and \textbf{F$_\beta$} ($\beta{=}2$), which weights
-recall higher because missing an attack costs more than a false alarm.
-\item \textbf{MCC} (Matthews correlation, range $[-1,1]$): robust to imbalance and our
-preferred single number; B0's MCC $=0.254$ exposes that the model is only weakly better than
-chance, which accuracy ($0.676$) hides.
+\item \textbf{F1} $=\frac{2\,PR}{P+R}$ and \textbf{F$_\beta$} $=(1+\beta^2)\frac{PR}{\beta^2 P+R}$
+($\beta{=}2$), which weights recall higher because missing an attack costs more than a false alarm.
+\item \textbf{MCC} $=\frac{TP\cdot TN-FP\cdot FN}{\sqrt{(TP+FP)(TP+FN)(TN+FP)(TN+FN)}}$
+(range $[-1,1]$): a balanced truth/prediction correlation robust to imbalance, and our preferred
+single number --- B0's MCC $=0.254$ exposes that the model is only weakly better than chance,
+which accuracy ($0.676$) hides.
 \item \textbf{ROC-AUC / PR-AUC}: threshold-free ranking quality. Under heavy imbalance the
 precision--recall curve (Figure~\ref{fig:pr}) is more informative than ROC because true
 negatives dominate.
@@ -410,6 +418,35 @@ reveals \emph{which} classes fail.
 default-threshold operating point against the no-skill baseline.}
 \label{fig:pr}
 \end{figure}
+
+\subsection{Deployment realism: precision at a realistic base rate}
+The Friday test set is $\approx$31\% attacks; a real network is far sparser. Because recall and
+the false-positive rate are prevalence-independent, precision at base rate $\pi$ is
+$P=\frac{R\,\pi}{R\,\pi+\mathrm{FPR}\,(1-\pi)}$ (Figure~\ref{fig:prev}). The two honest models
+fail for \emph{opposite} reasons. RF-B0 keeps high precision (\textbf{0.857} at $\pi=1\%$) only
+because it almost never fires --- recall is $0.098$, so it misses $\approx$90\% of attacks. The
+Isolation Forest catches more (recall $0.328$) but its precision \emph{collapses} to
+\textbf{0.014} at $\pi=1\%$ --- $\approx$99\% of its alerts would be false. There is no usable
+operating point: at a realistic base rate one detector is blind and the other is unusable noise.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.62\textwidth]{16_prevalence_precision.png}
+\caption{Precision re-expressed at realistic attack base rates. RF-B0/XGBoost stay precise only
+by barely firing; the Isolation Forest's precision falls toward zero as attacks become rare.}
+\label{fig:prev}
+\end{figure}
+
+\subsection{Quantifying the temporal confound}
+Two checks confirm the collapse is structural, not incidental. \textbf{Cram\'er's V} between
+weekday and attack \emph{type} (restricted to attack flows) is \textbf{1.00} --- each attack type
+lives entirely on one day --- while V(weekday, attack/benign) is $0.45$ (benign traffic exists
+every day). And a \textbf{day-provenance} Random Forest recovers the capture weekday from flow
+features \emph{alone} at \textbf{52.3\%} accuracy (5-class; chance $20\%$). The capture day is
+thus highly recoverable from the features, so a random split lets a model lean on day- and
+era-specific flow signatures instead of generalisable attack behaviour. This is the concrete
+mechanism behind the $0.999$: \emph{in-distribution memorisation of when and where a flow was
+captured}, not detection of attack behaviour.
 
 % =====================================================================
 \section{Error Analysis}
@@ -555,7 +592,7 @@ The full study runs from a pinned environment with one command; all randomness i
 Python & 3.12\\
 Environment manager & \texttt{uv} (pinned in \texttt{uv.lock})\\
 Core libraries & scikit-learn 1.9, XGBoost 3.3, imbalanced-learn 0.14, pandas, numpy\\
-Notebook execution & \texttt{jupyter nbconvert --execute} --- 0 errors, 0 warnings, 16 figures\\
+Notebook execution & \texttt{jupyter nbconvert --execute} --- 0 errors, 0 warnings, 17 figures\\
 Linting & \texttt{ruff check .} --- clean\\
 Unit tests & \texttt{pytest} --- 16 passing (\texttt{tests/}, dataset-independent)\\
 Report build & MiKTeX / \texttt{pdflatex} (this document)\\
