@@ -22,6 +22,11 @@
   "xgb_roc_auc": 0.7424744475219278,
   "iso_f1_binary": 0.5473018273314311,
   "iso_recall_attacks": 0.3278904720469872,
+  "rf_b0_precision_at_1pct": 0.8570883134297943,
+  "iso_precision_at_1pct": 0.014187018815640376,
+  "cramers_v_day_label": 0.44795597519206937,
+  "cramers_v_day_attacktype": 1.0,
+  "day_provenance_accuracy": 0.5227,
   "total_honest_gap_f1": 0.5103975865704184,
   "sc5_gap_met": true
 }

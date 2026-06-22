@@ -73,6 +73,9 @@ The three flaws (each tested with our own experiment, citing Engelen et al. 2021
    unsupervised Isolation Forest.
 5. **Full recall-aware metric suite** (precision, recall, F₁, F-beta(2), MCC, ROC-AUC, PR-AUC)
    + per-class confusion analysis + a SOC cost framing.
+6. **Deployment-realism + confound experiments**: precision re-expressed at a realistic 1%
+   attack base rate (no usable operating point), Cramér's V(day, attack-type) = 1.00, and a
+   day-provenance classifier that recovers the capture day from flow features at 52% (chance 20%).
 
 📓 **Notebook:** [`notebooks/ids_cicids2017_critique.ipynb`](notebooks/ids_cicids2017_critique.ipynb)
  · 📄 **Report:** [`report/report.pdf`](report/report.pdf)
@@ -95,7 +98,7 @@ The three flaws (each tested with our own experiment, citing Engelen et al. 2021
 │   └── report.pdf                    final report (14 pages)
 ├── src/ids_critique/                 tested, reusable core (data, features, evaluate, critique)
 ├── tests/                            pytest unit tests (dataset-independent)
-├── figures/                          16 generated plots (PNG)
+├── figures/                          17 generated plots (PNG)
 ├── references/                       source_article.md, dataset_inventory.md, papers
 ├── pyproject.toml / uv.lock          dependencies (uv) + ruff + pytest config
 ├── LICENSE                           MIT
